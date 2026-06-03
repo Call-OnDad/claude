@@ -761,3 +761,18 @@ Key endpoints: `/health`, `/api/request-help`, `/api/requests` (API key), `/api/
 | **.dad & .mom sites** | Community mentoring platforms | Design/content phase |
 | **call-on.media** | Main showcase landing page | 🔴 HIGH PRIORITY |
 | **Expo mobile app** | Native app for callon.dad/mom community | In progress |
+
+---
+
+## Debugging hard-won lessons
+
+- "Old/wrong content showing after deploy" — before blaming caches/SW/CDN, FIRST confirm the entry point is the file you think it is. `unzip -p app-debug.apk assets/public/index.html | head` or `curl /` and read what's actually being served. (Lost 2 rebuild cycles on Phase 3 mobile chasing a phantom SW cache when Capacitor was just loading the wrong HTML file.)
+
+## Capacitor / mobile builds — gotchas
+
+- **`server.startPath` is IGNORED unless `server.url` is also set.** Without `server.url`, Capacitor always loads `webDir/index.html` — period. If the mobile entry should be a different file, either rename it to `index.html` in webDir, use a separate webDir, or put a Capacitor-gated `location.replace()` at the top of `index.html`.
+- **Inside Capacitor, skip Service Worker registration** (`window.Capacitor.isNativePlatform()`). Bundled assets are already local — SW just creates stale-cache pain on APK upgrade.
+- **`cleartext: true` in `capacitor.config.json` does NOT always propagate to `AndroidManifest.xml`.** If the WebView can't reach an HTTP API (signal timed out, ERR_CLEARTEXT_NOT_PERMITTED), add `android:usesCleartextTraffic="true"` directly to the `<application>` tag.
+- **Bump `versionCode` on every APK rebuild** that changes bundled assets, so Android treats it as a clean upgrade.
+- **First Android Studio install gives JBR but NOT the SDK.** Install `platforms;android-34 build-tools;34.0.0 platform-tools` via `sdkmanager`, and pre-write `licenses/android-sdk-license` to avoid the interactive prompt hanging headless shells.
+- **Verify APK contents with `unzip -p app-debug.apk assets/public/<file>`** — confirms what actually shipped, not what should have shipped.
