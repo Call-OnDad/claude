@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Avatar — Celestial Intelligence</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #050a14;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #starfield {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .label-top {
+      color: #4a9eff55;
+      letter-spacing: 0.35em;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    #avatar-wrap {
+      position: relative;
+      z-index: 1;
+      cursor: pointer;
+      filter: drop-shadow(0 0 18px #3b82f644);
+      transition: filter 0.4s ease;
+    }
+    #avatar-wrap:hover {
+      filter: drop-shadow(0 0 32px #3b82f688);
+    }
+
+    .label-bottom {
+      color: #60a5fa88;
+      letter-spacing: 0.25em;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      margin-top: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Starfield -->
+  <svg id="starfield" aria-hidden="true"></svg>
+
+  <p class="label-top">Celestial Intelligence</p>
+
+  <svg
+    id="avatar-wrap"
+    viewBox="0 20 400 310"
+    width="380"
+    height="310"
+    aria-label="Claude avatar"
+  >
+    <defs>
+      <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#0d1b2a"/>
+        <stop offset="100%" stop-color="#060d14"/>
+      </radialGradient>
+      <radialGradient id="eyeL" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fbbf24" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#d97706" stop-opacity="0.2"/>
+      </radialGradient>
+      <radialGradient id="eyeR" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fbbf24" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#d97706" stop-opacity="0.2"/>
+      </radialGradient>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3.5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="eyeBloom" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Orbit ring -->
+    <ellipse id="orbit-ring"
+      cx="200" cy="148" rx="155" ry="155"
+      fill="none"
+      stroke="#3b82f6"
+      stroke-opacity="0.08"
+      stroke-width="0.8"
+      stroke-dasharray="4 8"
+    />
+
+    <!-- Orbit particles (3) -->
+    <g id="particle0"><circle r="5" fill="#3b82f6" opacity="0.2" filter="url(#glow)"/><circle r="2.5" fill="#93c5fd" opacity="0.7"/></g>
+    <g id="particle1"><circle r="5" fill="#3b82f6" opacity="0.2" filter="url(#glow)"/><circle r="2.5" fill="#93c5fd" opacity="0.7"/></g>
+    <g id="particle2"><circle r="5" fill="#3b82f6" opacity="0.2" filter="url(#glow)"/><circle r="2.5" fill="#93c5fd" opacity="0.7"/></g>
+
+    <!-- Breathing group -->
+    <g id="breathe">
+
+      <!-- Core glow -->
+      <circle cx="200" cy="148" r="130"
+        fill="none"
+        stroke="#1d4ed8"
+        stroke-opacity="0.07"
+        stroke-width="60"
+      />
+
+      <!-- Constellation edges -->
+      <g id="edges" stroke="#3b82f6" stroke-opacity="0.22" stroke-width="0.8" fill="none"></g>
+
+      <!-- Constellation nodes -->
+      <g id="nodes" filter="url(#glow)"></g>
+
+      <!-- Left eye bloom -->
+      <circle id="leye-bloom" cx="138" cy="112" r="14" fill="url(#eyeL)" opacity="0.3" filter="url(#eyeBloom)"/>
+      <circle id="leye-core"  cx="138" cy="112" r="6"  fill="#fbbf24" opacity="0.9" filter="url(#glow)"/>
+      <circle id="leye-inner" cx="138" cy="112" r="3"  fill="#fff8e1" opacity="0.9"/>
+
+      <!-- Right eye bloom -->
+      <circle id="reye-bloom" cx="262" cy="112" r="14" fill="url(#eyeR)" opacity="0.3" filter="url(#eyeBloom)"/>
+      <circle id="reye-core"  cx="262" cy="112" r="6"  fill="#fbbf24" opacity="0.9" filter="url(#glow)"/>
+      <circle id="reye-inner" cx="262" cy="112" r="3"  fill="#fff8e1" opacity="0.9"/>
+
+    </g>
+  </svg>
+
+  <p class="label-bottom">Claude · NEXUS. Core</p>
+
+<script>
+  // ── Data ────────────────────────────────────────────────────────────────
+  const NODES = [
+    { id:"crown",   x:200, y:48  },
+    { id:"lbrow",   x:148, y:82  },
+    { id:"rbrow",   x:252, y:82  },
+    { id:"leye",    x:138, y:112 },
+    { id:"reye",    x:262, y:112 },
+    { id:"ltemple", x:108, y:138 },
+    { id:"rtemple", x:292, y:138 },
+    { id:"lear",    x:92,  y:178 },
+    { id:"rear",    x:308, y:178 },
+    { id:"nose",    x:200, y:158 },
+    { id:"lcheek",  x:128, y:198 },
+    { id:"rcheek",  x:272, y:198 },
+    { id:"chin",    x:200, y:248 },
+  ];
+
+  const EDGES = [
+    ["crown","lbrow"],["crown","rbrow"],
+    ["lbrow","leye"],["rbrow","reye"],
+    ["leye","nose"],["reye","nose"],
+    ["lbrow","ltemple"],["rbrow","rtemple"],
+    ["ltemple","lear"],["rtemple","rear"],
+    ["lear","lcheek"],["rear","rcheek"],
+    ["lcheek","chin"],["rcheek","chin"],
+    ["nose","lcheek"],["nose","rcheek"],
+    ["lcheek","leye"],["rcheek","reye"],
+    ["ltemple","leye"],["rtemple","reye"],
+  ];
+
+  const nodeMap = {};
+  NODES.forEach(n => nodeMap[n.id] = n);
+
+  // ── SVG namespace helper ────────────────────────────────────────────────
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS(SVG_NS, tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+  }
+
+  // ── Build constellation edges ───────────────────────────────────────────
+  const edgesG = document.getElementById("edges");
+  EDGES.forEach(([a, b]) => {
+    const na = nodeMap[a], nb = nodeMap[b];
+    edgesG.appendChild(svgEl("line", { x1:na.x, y1:na.y, x2:nb.x, y2:nb.y }));
+  });
+
+  // ── Build constellation nodes ───────────────────────────────────────────
+  const nodesG = document.getElementById("nodes");
+  NODES.forEach(n => {
+    if (n.id === "leye" || n.id === "reye") return;
+    const r = (n.id === "crown" || n.id === "chin") ? 3.5 : 2.5;
+    nodesG.appendChild(svgEl("circle", { cx:n.x, cy:n.y, r, fill:"#60a5fa", opacity:"0.65" }));
+  });
+
+  // ── Build starfield ─────────────────────────────────────────────────────
+  const sfSvg = document.getElementById("starfield");
+  const stars = Array.from({length:120}, (_, i) => {
+    const cx = ((Math.sin(i * 137.508) * 0.5 + 0.5) * 100).toFixed(2) + "%";
+    const cy = ((Math.cos(i *  97.3  ) * 0.5 + 0.5) * 100).toFixed(2) + "%";
+    const r  = 0.3 + (i % 5) * 0.15;
+    const el = svgEl("circle", { cx, cy, r, fill:"white", opacity:"0.3" });
+    sfSvg.appendChild(el);
+    return { el, phase: i };
+  });
+
+  // ── Cached DOM refs ─────────────────────────────────────────────────────
+  const breatheG    = document.getElementById("breathe");
+  const orbitRing   = document.getElementById("orbit-ring");
+  const particles   = [0,1,2].map(i => document.getElementById("particle"+i));
+  const leyeBloom   = document.getElementById("leye-bloom");
+  const leyeCore    = document.getElementById("leye-core");
+  const leyeInner   = document.getElementById("leye-inner");
+  const reyeBloom   = document.getElementById("reye-bloom");
+  const reyeCore    = document.getElementById("reye-core");
+  const reyeInner   = document.getElementById("reye-inner");
+  const edgeLines   = edgesG.querySelectorAll("line");
+  const nodeDots    = nodesG.querySelectorAll("circle");
+
+  // ── Animation loop ──────────────────────────────────────────────────────
+  function animate(timestamp) {
+    const t = timestamp / 1000;
+
+    const breathe = Math.sin(t * 0.6) * 0.012 + 1;
+    const pulse   = (Math.sin(t * 1.2) + 1) / 2;
+    const eyeGlow = 0.7 + pulse * 0.3;
+
+    // Breathing scale
+    breatheG.setAttribute("transform",
+      `translate(200,148) scale(${breathe}) translate(-200,-148)`);
+
+    // Orbit ring opacity
+    orbitRing.setAttribute("stroke-opacity", (0.08 + pulse * 0.06).toFixed(3));
+
+    // Orbit particles
+    particles.forEach((g, i) => {
+      const angle = t * 0.4 + (i * Math.PI * 2) / 3;
+      const px = (200 + Math.cos(angle) * 155).toFixed(2);
+      const py = (148 + Math.sin(angle) * 155).toFixed(2);
+      g.setAttribute("transform", `translate(${px},${py})`);
+      const outer = g.children[0];
+      const inner = g.children[1];
+      outer.setAttribute("opacity", (0.15 + pulse * 0.10).toFixed(3));
+      inner.setAttribute("opacity", (0.60 + pulse * 0.30).toFixed(3));
+    });
+
+    // Edge pulse
+    const edgeOp = (0.18 + pulse * 0.12).toFixed(3);
+    edgeLines.forEach(l => l.setAttribute("stroke-opacity", edgeOp));
+
+    // Node pulse
+    const nodeOp = (0.55 + pulse * 0.35).toFixed(3);
+    nodeDots.forEach(c => c.setAttribute("opacity", nodeOp));
+
+    // Eyes
+    leyeBloom.setAttribute("opacity", (eyeGlow * 0.35).toFixed(3));
+    leyeCore .setAttribute("opacity", eyeGlow.toFixed(3));
+    leyeInner.setAttribute("opacity", eyeGlow.toFixed(3));
+    reyeBloom.setAttribute("opacity", (eyeGlow * 0.35).toFixed(3));
+    reyeCore .setAttribute("opacity", eyeGlow.toFixed(3));
+    reyeInner.setAttribute("opacity", eyeGlow.toFixed(3));
+
+    // Starfield twinkle
+    stars.forEach(({ el, phase }) => {
+      const op = (0.20 + Math.abs(Math.sin(t * 0.3 + phase)) * 0.50).toFixed(3);
+      el.setAttribute("opacity", op);
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+</script>
+</body>
+</html>
