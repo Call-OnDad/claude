@@ -1,0 +1,63 @@
+// NEXUS tailnet ACL policy
+// Format: HuJSON (JSON with comments and trailing commas)
+//
+// Assign tags via CLI after node registration:
+//   docker exec headscale headscale nodes tag -i <NODE_ID> --tags "tag:admin-device"
+//
+// Tag groups:
+//   tag:proxmox-host   — the Proxmox hypervisor (192.168.0.10)
+//   tag:lxc-container  — LXC containers running on Proxmox (CT117, etc.)
+//   tag:admin-device   — laptops/desktops with full access
+//   tag:mobile-device  — phones/tablets with limited access
+{
+  "tagOwners": {
+    "tag:proxmox-host":   ["autogroup:admin"],
+    "tag:lxc-container":  ["autogroup:admin"],
+    "tag:admin-device":   ["autogroup:admin"],
+    "tag:mobile-device":  ["autogroup:admin"],
+  },
+
+  "acls": [
+    // Admin devices: unrestricted access to the entire tailnet
+    {
+      "action": "accept",
+      "src": ["tag:admin-device"],
+      "dst": ["*:*"],
+    },
+
+    // Proxmox host can reach all LXC containers on any port
+    {
+      "action": "accept",
+      "src": ["tag:proxmox-host"],
+      "dst": ["tag:lxc-container:*"],
+    },
+
+    // LXC containers can communicate with each other freely
+    // Narrow these ports down once services are stable
+    {
+      "action": "accept",
+      "src": ["tag:lxc-container"],
+      "dst": ["tag:lxc-container:*"],
+    },
+
+    // Mobile devices: SSH + web to containers, Proxmox UI on host only
+    {
+      "action": "accept",
+      "src": ["tag:mobile-device"],
+      "dst": [
+        "tag:lxc-container:22,80,443",
+        "tag:proxmox-host:8006",
+      ],
+    },
+  ],
+
+  "ssh": [
+    // Admin devices can SSH as any user to all tagged hosts
+    {
+      "action": "accept",
+      "src":   ["tag:admin-device"],
+      "dst":   ["tag:proxmox-host", "tag:lxc-container"],
+      "users": ["autogroup:nonroot", "root"],
+    },
+  ],
+}

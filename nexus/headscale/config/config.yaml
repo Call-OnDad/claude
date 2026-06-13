@@ -1,0 +1,80 @@
+---
+# Headscale v0.28.0 — NEXUS configuration
+# Deployed behind Caddy reverse proxy at https://mesh.call-on.media
+
+server_url: https://mesh.call-on.media
+
+listen_addr: 0.0.0.0:8080
+metrics_listen_addr: 127.0.0.1:9090
+grpc_listen_addr: 0.0.0.0:50443
+grpc_allow_insecure: false
+
+# CRITICAL: both must be empty strings — Caddy handles TLS termination.
+# If either is set to a path, headscale will try its own TLS and break.
+tls_cert_path: ""
+tls_key_path: ""
+
+# Trust the Caddy reverse proxy so X-Real-IP / X-Forwarded-For are respected.
+# 172.16.0.0/12 covers all default Docker bridge networks.
+# After deploy, tighten to: docker inspect caddy | grep IPAddress
+trusted_proxies:
+  - 172.16.0.0/12
+  - 192.168.0.0/16
+
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
+
+prefixes:
+  v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48
+  allocation: sequential
+
+derp:
+  server:
+    enabled: true
+    region_id: 999
+    region_code: nexus
+    region_name: "NEXUS Home"
+    stun_listen_addr: "0.0.0.0:3478"
+    private_key_path: /var/lib/headscale/derp_server_private.key
+    automatically_add_embedded_derp_region: true
+    # ipv4/ipv6 left empty — headscale auto-detects the external IP from server_url
+  urls: []       # no external DERP maps; embedded DERP only (add Tailscale's map later if needed)
+  paths: []
+  auto_update_enabled: false
+  update_frequency: 24h
+
+database:
+  type: sqlite
+  sqlite:
+    path: /var/lib/headscale/db.sqlite
+
+policy:
+  mode: file
+  path: /etc/headscale/acl.hujson
+
+dns:
+  magic_dns: true
+  base_domain: nexus.internal    # MagicDNS suffix: <hostname>.nexus.internal
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 8.8.8.8
+  search_domains: []
+  extra_records: []
+
+unix_socket: /var/run/headscale/headscale.sock
+unix_socket_permission: "0770"
+
+log:
+  level: info
+  format: text
+
+disable_check_updates: false
+ephemeral_node_inactivity_timeout: 30m
+node_update_check_interval: 10s
+
+logtail:
+  enabled: false    # disable Tailscale's telemetry on the headscale server process
+
+randomize_client_port: false

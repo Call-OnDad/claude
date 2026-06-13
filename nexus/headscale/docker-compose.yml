@@ -1,0 +1,51 @@
+version: "3.8"
+
+# NEXUS — Headscale self-hosted Tailscale control plane
+# Deploy on: CT117 / NEXUS HUB (or whichever Docker host you confirm)
+# Prerequisites:
+#   - An external Docker network named "proxy" shared with Caddy must already exist.
+#     Create it if missing: docker network create proxy
+#   - ./config/config.yaml must exist before first start (see config/ directory)
+#   - Port 3478/udp must be reachable from the internet for STUN (embedded DERP)
+
+services:
+  headscale:
+    image: headscale/headscale:v0.28.0
+    container_name: headscale
+    restart: unless-stopped
+    command: serve
+    volumes:
+      - ./config:/etc/headscale:ro           # config.yaml + acl.hujson (read-only)
+      - headscale-data:/var/lib/headscale    # sqlite DB, noise key, DERP key
+      - headscale-run:/var/run/headscale     # unix socket for CLI access
+    networks:
+      - headscale-internal
+      - proxy                                # Caddy reaches headscale via this network
+    expose:
+      - "8080"                               # HTTP API — proxied by Caddy, not host-exposed
+      - "50443"                              # gRPC — internal Docker network only
+    ports:
+      - "3478:3478/udp"                      # STUN (embedded DERP) — cannot go through Caddy
+
+  headscale-admin:
+    image: goodieshq/headscale-admin:latest
+    container_name: headscale-admin
+    restart: unless-stopped
+    networks:
+      - headscale-internal
+      - proxy                                # Caddy reaches admin UI via this network
+    expose:
+      - "80"
+    depends_on:
+      - headscale
+
+networks:
+  headscale-internal:
+    driver: bridge
+    internal: true                           # isolated: headscale ↔ headscale-admin only
+  proxy:
+    external: true                           # must match your existing Caddy Docker network name
+
+volumes:
+  headscale-data:
+  headscale-run:
